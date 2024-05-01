@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Bangor Environmental Data AR</title>
+    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/three@0.145.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.145.0/examples/js/loaders/GLTFLoader.js"></script>
+    <style>
+      #map-container {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #f0f0f0;
+        text-align: center;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      #map {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <a-scene
+      arjs="sourceType: webcam; debugUIEnabled: false;"
+      vr-mode-ui="enabled: false"
+      gps-camera-rotation
+      embedded
+      arjs-anchor="gps-entity-place: coordinates: 54.6672, -5.9277; name: Bangor University"
+    >
+      <a-box
+        position="0 0.5 0"
+        material="color: green"
+        gps-entity-place="latitude: 54.6672; longitude: -5.9277;"
+      ></a-box>
+      <a-entity
+        id="data-visualization"
+        gps-entity-place="latitude: 54.6672; longitude: -5.9277;"
+      ></a-entity>
+    </a-scene>
+
+    <div id="map-container">
+      <h2>You are not in Bangor</h2>
+      <div id="map"></div>
+    </div>
+
+    <script>
+      // Load the 3D model for data visualization
+      const loader = new THREE.GLTFLoader();
+      loader.load(
+        'bangor.gltf',
+        (gltf) => {
+          const dataVisualization = document.querySelector('#data-visualization');
+          dataVisualization.setObject3D('mesh', gltf.scene);
+        },
+        undefined,
+        (error) => {
+          console.error('Error loading 3D model:', error);
+        }
+      );
+
+      // Check if the user's location is within Bangor
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userLatitude = position.coords.latitude;
+          const userLongitude = position.coords.longitude;
+
+          const bangorLatitude = 54.6672;
+          const bangorLongitude = -5.9277;
+
+          // Define a radius around Bangor (e.g., 5 kilometers)
+          const radiusInKm = 5;
+          const radiusInDegrees = radiusInKm / 111.2; // Approximate conversion from km to degrees
+
+          // Calculate the distance between the user's location and Bangor
+          const distance =
+            Math.sqrt(
+              Math.pow(userLatitude - bangorLatitude, 2) +
+                Math.pow(userLongitude - bangorLongitude, 2)
+            ) * 60 * 1.1515;
+
+          if (distance > radiusInDegrees) {
+            // User is outside Bangor
+            const mapContainer = document.querySelector('#map-container');
+            mapContainer.style.display = 'block';
+
+            // Embed Google Maps
+            const map = document.getElementById('map');
+            map.innerHTML = `<iframe
+              src="https://maps.google.com/maps?q=${userLatitude},${userLongitude}&z=15&output=embed"
+              width="100%"
+              height="100%"
+              frameborder="0"
+              style="border:0"
+              allowfullscreen
+            ></iframe>`;
+          }
+        },
+        (error) => {
+          console.error('Error getting user location:', error);
+        }
+      );
+    </script>
+  </body>
+</html>

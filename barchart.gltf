@@ -1,0 +1,37 @@
+// This code generates a simple 3D bar chart using Three.js and exports it as a GLTF file
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+camera.position.z = 5;
+
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(800, 600);
+
+const geometry = new THREE.BoxGeometry(1, 1, 1);
+const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+
+const bar1 = new THREE.Mesh(geometry, material);
+bar1.position.x = -1;
+bar1.position.y = 1;
+scene.add(bar1);
+
+const bar2 = new THREE.Mesh(geometry, material);
+bar2.position.x = 0;
+bar2.position.y = 2;
+scene.add(bar2);
+
+const bar3 = new THREE.Mesh(geometry, material);
+bar3.position.x = 1;
+bar3.position.y = 3;
+scene.add(bar3);
+
+const exporter = new THREE.GLTFExporter();
+exporter.parse(scene, (gltf) => {
+  const output = gltf;
+  const writer = new THREE.GLTFExporter().extensionsUsed;
+  const blob = new Blob([output], { type: 'model/gltf+json' });
+  const link = document.createElement('a');
+  link.download = 'barchart.gltf';
+  link.href = URL.createObjectURL(blob);
+  link.click();
+});
